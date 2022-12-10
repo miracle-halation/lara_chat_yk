@@ -55,7 +55,12 @@ FROM base AS deploy
 COPY ./infra/docker/php/php.deploy.ini /usr/local/etc/php/php.ini
 COPY ./backend /data
 
-RUN composer install -q -n --no-ansi --no-dev --no-scripts --no-progress --prefer-dist \
+RUN composer install --optimize-autoloader --no-dev \
+  && chown -R www-data:www-data ./ \
   && chmod -R 777 storage bootstrap/cache \
   && php artisan optimize:clear \
-  && php artisan optimize
+  && php artisan optimize \
+  && php artisan cache:clear \
+  && php artisan config:clear \
+  && php artisan route:clear \
+  && php artisan view:clear \

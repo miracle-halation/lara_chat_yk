@@ -11,7 +11,7 @@ RUN apk update && \
 # node command
 COPY --from=node /usr/local/bin /usr/local/bin
 # npm command
-COPY --from=node /usr/local/lib /usr/local/lib  
+COPY --from=node /usr/local/lib /usr/local/lib
 # yarn command
 COPY --from=node /opt /opt
 

@@ -1,0 +1,53 @@
+version: 2
+jobs:
+  build:
+    docker:
+      - image: cimg/php:8.1.11-node
+        environment:
+          - APP_DEBUG: true
+          - APP_ENV: testing
+          - DB_CONNECTION: mysql
+          - DB_DATABASE: laravel
+          - TEST_DB_DATABASE: laravel
+          - DB_USERNAME: root
+      - image: circleci/mysql:8.0-ram
+        environment:
+          - MYSQL_ALLOW_EMPTY_PASSWORD: true
+          - MYSQL_DATABASE: laravel
+        deploy-job:
+            steps:
+              - add_ssh_keys:
+                  fingerprints:
+                    - "0e:88:d2:21:fa:3f:84:78:14:47:c2:51:36:8c:5e:25"
+    steps:
+      - checkout
+      - run: sudo apt update
+      - run: sudo docker-php-ext-install pdo_mysql
+      - restore_cache:
+          keys:
+            - v1-dependencies-{{ checksum "backend/composer.json" }}
+            - v1-dependencies-
+      - run:
+          name : composer install
+          working_directory: backend
+          command: |
+            composer install -n --prefer-dist
+      - save_cache:
+          key: v1-dependencies-{{ checksum "backend/composer.json" }}
+          paths:
+            - ./vendor
+      - run:
+          name : npm
+          working_directory: backend
+          command: |
+            npm install
+            npm run build
+      - run:
+          name : phpコマンド
+          working_directory: backend
+          command: |
+            echo "APP_KEY=" > .env
+            php artisan key:generate
+            php artisan migrate
+            php artisan db:seed
+            php artisan test

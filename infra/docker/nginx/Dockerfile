@@ -17,4 +17,6 @@ COPY --from=node /opt /opt
 
 COPY ./infra/docker/nginx/*.conf /etc/nginx/conf.d/
 
+COPY /backend /data
+
 WORKDIR /data
